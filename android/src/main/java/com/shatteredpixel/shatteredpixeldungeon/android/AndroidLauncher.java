@@ -50,13 +50,20 @@ import com.shatteredpixel.shatteredpixeldungeon.ui.Button;
 import com.watabou.input.KeyEvent;
 import com.watabou.noosa.Game;
 import com.watabou.utils.FileUtils;
-
+import com.google.android.gms.ads.AdRequest;
+import com.google.android.gms.ads.AdSize;
+import com.google.android.gms.ads.AdView;
+import com.google.android.gms.ads.MobileAds;
+import com.google.android.gms.ads.initialization.InitializationStatus;
+import com.google.android.gms.ads.initialization.OnInitializationCompleteListener;
+import android.widget.RelativeLayout;
+import android.view.View;
 public class AndroidLauncher extends AndroidApplication {
 	
 	public static AndroidApplication instance;
 	
 	private static AndroidPlatformSupport support;
-	
+	private AdView adView;
 	@SuppressLint("SetTextI18n")
 	@Override
 	protected void onCreate (Bundle savedInstanceState) {
@@ -166,8 +173,19 @@ public class AndroidLauncher extends AndroidApplication {
 		support.updateSystemUI();
 
 		Button.longClick = ViewConfiguration.getLongPressTimeout()/1000f;
+		View gameView = initializeForView(new ShatteredPixelDungeon(support), config);
+RelativeLayout layout = new RelativeLayout(this);
+layout.addView(gameView);
+adView = new AdView(this);
+adView.setAdSize(AdSize.BANNER);
+adView.setAdUnitId("ca-app-pub-3940256099942544/6300978111");
+RelativeLayout.LayoutParams adParams = new RelativeLayout.LayoutParams(-2,-2);
+adParams.addRule(12);
+adParams.addRule(14);
+layout.addView(adView, adParams);
+adView.loadAd(new AdRequest.Builder().build());
+setContentView(layout);
 		
-		initialize(new ShatteredPixelDungeon(support), config);
 		
 	}
 
