@@ -1,223 +1,76 @@
-/*
- * Pixel Dungeon
- * Copyright (C) 2012-2015 Oleg Dolya
- *
- * Shattered Pixel Dungeon
- * Copyright (C) 2014-2026 Evan Debenham
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>
- */
-
 package com.shatteredpixel.shatteredpixeldungeon.android;
 
-import android.annotation.SuppressLint;
-import android.content.Context;
-import android.content.Intent;
-import android.content.pm.PackageManager;
-import android.os.Build;
 import android.os.Bundle;
-import android.view.ViewConfiguration;
-import android.window.OnBackInvokedCallback;
-import android.window.OnBackInvokedDispatcher;
+import android.view.View;
+import android.widget.FrameLayout;
+import android.widget.RelativeLayout;
 
-import com.badlogic.gdx.Files;
-import com.badlogic.gdx.Gdx;
-import com.badlogic.gdx.Input;
 import com.badlogic.gdx.backends.android.AndroidApplication;
 import com.badlogic.gdx.backends.android.AndroidApplicationConfiguration;
-import com.badlogic.gdx.backends.android.AndroidAudio;
-import com.badlogic.gdx.backends.android.AsynchronousAndroidAudio;
-import com.badlogic.gdx.graphics.g2d.freetype.FreeType;
-import com.badlogic.gdx.utils.GdxNativesLoader;
-import com.shatteredpixel.shatteredpixeldungeon.SPDSettings;
 import com.shatteredpixel.shatteredpixeldungeon.ShatteredPixelDungeon;
-import com.shatteredpixel.shatteredpixeldungeon.services.news.News;
-import com.shatteredpixel.shatteredpixeldungeon.services.news.NewsImpl;
-import com.shatteredpixel.shatteredpixeldungeon.services.updates.UpdateImpl;
-import com.shatteredpixel.shatteredpixeldungeon.services.updates.Updates;
-import com.shatteredpixel.shatteredpixeldungeon.ui.Button;
-import com.watabou.input.KeyEvent;
-import com.watabou.noosa.Game;
-import com.watabou.utils.FileUtils;
+
 import com.google.android.gms.ads.AdRequest;
 import com.google.android.gms.ads.AdSize;
 import com.google.android.gms.ads.AdView;
 import com.google.android.gms.ads.MobileAds;
-import com.google.android.gms.ads.initialization.InitializationStatus;
-import com.google.android.gms.ads.initialization.OnInitializationCompleteListener;
-import android.widget.RelativeLayout;
-import android.view.View;
+
 public class AndroidLauncher extends AndroidApplication {
-	
-	public static AndroidApplication instance;
-	
-	private static AndroidPlatformSupport support;
-	private AdView adView;
-	@SuppressLint("SetTextI18n")
-	@Override
-	protected void onCreate (Bundle savedInstanceState) {
-		super.onCreate(savedInstanceState);
+    private AdView adView;
 
-		try {
-			GdxNativesLoader.load();
-			FreeType.initFreeType();
-		} catch (Exception e){
-			GdxNativesLoader.disableNativesLoading = true;
-			AndroidMissingNativesHandler.error = e;
-			Intent intent = new Intent(this, AndroidMissingNativesHandler.class);
-			startActivity(intent);
-			finish();
-			//let initialization continue for a moment so that we can set up things libGDX expects to be set up
-		}
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
 
-		//there are some things we only need to set up on first launch
-		if (instance == null) {
+        AndroidApplicationConfiguration config = new AndroidApplicationConfiguration();
+        config.useImmersiveMode = true;
 
-			instance = this;
+        // Ads Initialize
+        MobileAds.initialize(this, initializationStatus -> {});
 
-			try {
-				Game.version = getPackageManager().getPackageInfo(getPackageName(), 0).versionName;
-			} catch (PackageManager.NameNotFoundException e) {
-				Game.version = "???";
-			}
-			try {
-				Game.versionCode = getPackageManager().getPackageInfo(getPackageName(), 0).versionCode;
-			} catch (PackageManager.NameNotFoundException e) {
-				Game.versionCode = 0;
-			}
+        // Main Layout
+        FrameLayout layout = new FrameLayout(this);
+        RelativeLayout.LayoutParams params = new RelativeLayout.LayoutParams(
+                RelativeLayout.LayoutParams.MATCH_PARENT,
+                RelativeLayout.LayoutParams.MATCH_PARENT);
+        layout.setLayoutParams(params);
 
-			Gdx.app = this;
+        // Game View
+        View gameView = initializeForView(new ShatteredPixelDungeon(new AndroidPlatformSupport()), config);
 
-			//we want to try and ID if we were installed by a 3rd party appstore.
-			// If so we vary update and news checking a bit.
-			String installer;
-			try {
-				if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R){
-					installer = getPackageManager().getInstallSourceInfo(getPackageName()).getInstallingPackageName();
-				} else {
-					installer = getPackageManager().getInstallerPackageName(getPackageName());
-				}
-				if (installer == null) installer = "???";
-			} catch (Exception e) {
-				installer = "???";
-			}
+        // Banner Ad
+        adView = new AdView(this);
+        adView.setAdSize(AdSize.BANNER);
+        adView.setAdUnitId("ca-app-pub-8859848812165923/1754995361");
 
-			//if we were installed by a known 3rd party appstore that auto-updates, disable update checking
-			if (UpdateImpl.supportsUpdates()
-					&& !installer.contains("fdroid") && !installer.contains("com.looker.droidify") && !installer.contains("com.uptodown")) {
-				Updates.service = UpdateImpl.getUpdateService();
-			}
+        FrameLayout.LayoutParams adParams = new FrameLayout.LayoutParams(
+                FrameLayout.LayoutParams.WRAP_CONTENT,
+                FrameLayout.LayoutParams.WRAP_CONTENT);
+        adParams.gravity = android.view.Gravity.BOTTOM | android.view.Gravity.CENTER_HORIZONTAL;
 
-			//F-Droid specifically considers auto news checking to be an 'anti-feature', so default it to false
-			if (NewsImpl.supportsNews()) {
-				if (installer.contains("fdroid") || installer.contains("com.looker.droidify")){
-					SPDSettings.newsDefault = false;
-				}
-				News.service = NewsImpl.getNewsService();
-			}
+        AdRequest adRequest = new AdRequest.Builder().build();
+        adView.loadAd(adRequest);
 
-			FileUtils.setDefaultFileProperties(Files.FileType.Local, "");
+        layout.addView(gameView);
+        layout.addView(adView, adParams);
 
-			// grab preferences directly using our instance first
-			// so that we don't need to rely on Gdx.app, which isn't initialized yet.
-			// Note that we use a different prefs name on android for legacy purposes,
-			// this is the default prefs filename given to an android app (.xml is automatically added to it)
-			SPDSettings.set(instance.getPreferences("ShatteredPixelDungeon"));
+        setContentView(layout);
+    }
 
-		} else {
-			instance = this;
-		}
+    @Override
+    protected void onResume() {
+        super.onResume();
+        if (adView != null) adView.resume();
+    }
 
-		//Shattered still overrides the back gesture behaviour, but we need to do it in a new way
-		// (API added in Android 13, functionality enforced in Android 16)
-		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-			//we post this to a runnable so that it's delayed and overrides
-			// default GDX back handling, which only sends a key down event
-			runnables.add(new Runnable() {
-				@Override
-				public void run() {
-					getOnBackInvokedDispatcher().registerOnBackInvokedCallback(OnBackInvokedDispatcher.PRIORITY_DEFAULT, new OnBackInvokedCallback() {
-						@Override
-						public void onBackInvoked() {
-							KeyEvent.addKeyEvent(new KeyEvent(Input.Keys.BACK, true));
-							KeyEvent.addKeyEvent(new KeyEvent(Input.Keys.BACK, false));
-						}
-					});
-				}
-			});
-		}
+    @Override
+    protected void onPause() {
+        if (adView != null) adView.pause();
+        super.onPause();
+    }
 
-		AndroidApplicationConfiguration config = new AndroidApplicationConfiguration();
-		config.depth = 0;
-
-		//we manage this ourselves
-		config.useImmersiveMode = false;
-		
-		config.useCompass = false;
-		config.useAccelerometer = false;
-		
-		if (support == null) support = new AndroidPlatformSupport();
-		else                 support.reloadGenerators();
-		
-		support.updateSystemUI();
-
-		Button.longClick = ViewConfiguration.getLongPressTimeout()/1000f;
-		View gameView = initializeForView(new ShatteredPixelDungeon(support), config);
-RelativeLayout layout = new RelativeLayout(this);
-layout.addView(gameView);
-adView = new AdView(this);
-adView.setAdSize(AdSize.BANNER);
-adView.setAdUnitId("ca-app-pub-3940256099942544/6300978111");
-RelativeLayout.LayoutParams adParams = new RelativeLayout.LayoutParams(-2,-2);
-adParams.addRule(12);
-adParams.addRule(14);
-layout.addView(adView, adParams);
-adView.loadAd(new AdRequest.Builder().build());
-setContentView(layout);
-		
-		
-	}
-
-	@Override
-	public AndroidAudio createAudio(Context context, AndroidApplicationConfiguration config) {
-		return new AsynchronousAndroidAudio(context, config);
-	}
-
-	@Override
-	protected void onResume() {
-		//prevents weird rare cases where the app is running twice
-		if (instance != this){
-			finishAndRemoveTask();
-		}
-		super.onResume();
-	}
-
-	@SuppressLint("GestureBackNavigation")
-	@Override
-	public void onBackPressed() {
-		//do nothing, game should catch all back presses
-	}
-
-	@Override
-	public void onWindowFocusChanged(boolean hasFocus) {
-		super.onWindowFocusChanged(hasFocus);
-		support.updateSystemUI();
-	}
-	
-	@Override
-	public void onMultiWindowModeChanged(boolean isInMultiWindowMode) {
-		super.onMultiWindowModeChanged(isInMultiWindowMode);
-		support.updateSystemUI();
-	}
+    @Override
+    protected void onDestroy() {
+        if (adView != null) adView.destroy();
+        super.onDestroy();
+    }
 }
