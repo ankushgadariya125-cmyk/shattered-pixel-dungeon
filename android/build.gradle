@@ -101,9 +101,9 @@ task copyAndroidNatives() {
     }
 }
 
-tasks.matching { it.name.contains("merge") && it.name.contains("JniLibFolders") }.configureEach { packageTask ->
-    packageTask.dependsOn 'copyAndroidNatives'
+tasks.matching { it.name.contains('package') }.all {
+    packageTask.dependsOn 'copyNativeLibs'
 }
-dependencies 
-implementation 'com.google.android.gms:play-services-ads:22.5.0'
+dependencies {
+    implementation 'com.google.android.gms:play-services-ads:22.5.0'
 }
