@@ -25,11 +25,10 @@
 		android:resizeableActivity="true"
 		android:allowBackup="true"
 		android:fullBackupOnly="true"
-		android:backupAgent=".AndroidBackupHandler">
-		         <meta-data
-            android:name="com.google.android.gms.ads.APPLICATION_ID"
-            android:value="ca-app-pub-3940256099942544~3347511713"
-		        />
+		android:backupAgent=".
+		<meta-data
+    android:name="com.google.android.gms.ads.APPLICATION_ID"
+    android:value="ca-app-pub-8859848812165923~4885564899"/>        
 
         <activity
             android:name=".AndroidLauncher"
