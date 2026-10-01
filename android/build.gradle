@@ -1,21 +1,22 @@
 apply plugin: "com.android.application"
 
 android {
-    namespace 'com.shatteredpixel.shatteredpixeldungeon.android'
-    compileSdk rootProject.ext.appAndroidCompileSDK
-
-    defaultConfig {
-        applicationId rootProject.ext.appPackageName
-        minSdk rootProject.ext.appAndroidMinSDK
-        targetSdk rootProject.ext.appAndroidTargetSDK
-        versionCode rootProject.ext.appVersionCode
-        versionName rootProject.ext.appVersionName
-        multiDexEnabled true
-    }
+    namespace "com.shatteredpixel.shatteredpixeldungeon.android"
+    compileSdk rootProject.ext.compileSdkVersion
+    buildToolsVersion rootProject.ext.buildToolsVersion
 
     compileOptions {
-        sourceCompatibility rootProject.ext.appJavaCompatibility
-        targetCompatibility rootProject.ext.appJavaCompatibility
+        sourceCompatibility rootProject.ext.javaVersion
+        targetCompatibility rootProject.ext.javaVersion
+    }
+
+    defaultConfig {
+        applicationId "com.shatteredpixel.shatteredpixeldungeon.android"
+        minSdkVersion rootProject.ext.minSdkVersion
+        targetSdkVersion rootProject.ext.targetSdkVersion
+        versionCode rootProject.ext.versionCode
+        versionName rootProject.ext.versionName
+        multiDexEnabled true
     }
 
     sourceSets {
@@ -29,10 +30,10 @@ android {
             jniLibs.srcDirs = ['libs']
         }
     }
-    
-    packaging {
+
+    packagingOptions {
         resources {
-            excludes += ['META-INF/robovm/ios/robovm.xml']
+            excludes += ['META-INF/robovm/ios/robovm.xml', 'META-INF/DEPENDENCIES']
         }
     }
 }
@@ -40,13 +41,9 @@ android {
 dependencies {
     implementation project(':core')
     implementation "com.badlogicgames.gdx:gdx-backend-android:$gdxVersion"
-    natives "com.badlogicgames.gdx:gdx-platform:$gdxVersion:arm64-v8a"
-    natives "com.badlogicgames.gdx:gdx-platform:$gdxVersion:armeabi-v7a"
-    natives "com.badlogicgames.gdx:gdx-platform:$gdxVersion:x86_64"
-    implementation "com.badlogicgames.gdx:gdx-freetype:$gdxVersion"
-    natives "com.badlogicgames.gdx:gdx-freetype-platform:$gdxVersion:arm64-v8a"
-    natives "com.badlogicgames.gdx:gdx-freetype-platform:$gdxVersion:armeabi-v7a"
-    natives "com.badlogicgames.gdx:gdx-freetype-platform:$gdxVersion:x86_64"
-    implementation "com.badlogicgames.gdx:gdx-controllers:gdx-controllers-android:$gdxVersion"
+    natives "com.badlogicgames.gdx:gdx-platform:$gdxVersion:natives-armeabi-v7a"
+    natives "com.badlogicgames.gdx:gdx-platform:$gdxVersion:natives-arm64-v8a"
+    natives "com.badlogicgames.gdx:gdx-platform:$gdxVersion:natives-x86"
+    natives "com.badlogicgames.gdx:gdx-platform:$gdxVersion:natives-x86_64"
     implementation 'com.google.android.gms:play-services-ads:22.5.0'
 }
