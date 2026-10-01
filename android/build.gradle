@@ -1,18 +1,18 @@
 apply plugin: "com.android.application"
 android {
-    namespace "com.shatteredpixel.shatteredpixeldungeon.android"
-    compileSdk rootProject.ext.compileSdkVersion
-    buildToolsVersion rootProject.ext.buildToolsVersion
+    namespace "com.shatteredpixel.shatteredpd"
+    compileSdk 34
+    buildToolsVersion "34.0.0"
     compileOptions {
-        sourceCompatibility rootProject.ext.javaVersion
-        targetCompatibility rootProject.ext.javaVersion
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
     }
     defaultConfig {
-        applicationId "com.shatteredpixel.shatteredpixeldungeon.android"
-        minSdkVersion rootProject.ext.minSdkVersion
-        targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode rootProject.ext.versionCode
-        versionName rootProject.ext.versionName
+        applicationId "com.shatteredpixel.shatteredpd"
+        minSdkVersion 19
+        targetSdkVersion 34
+        versionCode 1
+        versionName "1.0"
         multiDexEnabled true
     }
     sourceSets {
@@ -25,15 +25,6 @@ android {
         }
     }
     packagingOptions {
-        resources { excludes += ['META-INF/robovm/ios/robovm.xml'] }
+        resources { excludes += ['META-INF/DEPENDENCIES'] }
     }
-}
-dependencies {
-    implementation project(':core')
-    implementation "com.badlogicgames.gdx:gdx-backend-android:$gdxVersion"
-    natives "com.badlogicgames.gdx:gdx-platform:$gdxVersion:natives-armeabi-v7a"
-    natives "com.badlogicgames.gdx:gdx-platform:$gdxVersion:natives-arm64-v8a"
-    natives "com.badlogicgames.gdx:gdx-platform:$gdxVersion:natives-x86"
-    natives "com.badlogicgames.gdx:gdx-platform:$gdxVersion:natives-x86_64"
-    implementation 'com.google.android.gms:play-services-ads:22.5.0'
 }
