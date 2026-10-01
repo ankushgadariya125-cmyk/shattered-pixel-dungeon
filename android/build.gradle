@@ -29,8 +29,11 @@ android {
             jniLibs.srcDirs = ['libs']
         }
     }
-    packagingOptions {
-        exclude 'META-INF/robovm/ios/robovm.xml'
+    
+    packaging {
+        resources {
+            excludes += ['META-INF/robovm/ios/robovm.xml']
+        }
     }
 }
 
