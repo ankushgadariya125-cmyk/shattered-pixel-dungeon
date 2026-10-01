@@ -1,52 +1,49 @@
-apply plugin: 'com.android.application'
+apply plugin: "com.android.application"
 
 android {
-    compileSdk rootProject.ext.compileSdkVersion
-    buildToolsVersion rootProject.ext.buildToolsVersion
-
-    compileOptions {
-        sourceCompatibility JavaVersion.VERSION_11
-        targetCompatibility JavaVersion.VERSION_11
-    }
+    namespace 'com.shatteredpixel.shatteredpixeldungeon.android'
+    compileSdk rootProject.ext.appAndroidCompileSDK
 
     defaultConfig {
         applicationId rootProject.ext.appPackageName
-        minSdk rootProject.ext.minSdkVersion
-        targetSdk rootProject.ext.targetSdkVersion
+        minSdk rootProject.ext.appAndroidMinSDK
+        targetSdk rootProject.ext.appAndroidTargetSDK
         versionCode rootProject.ext.appVersionCode
         versionName rootProject.ext.appVersionName
-        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+        multiDexEnabled true
     }
 
-    buildTypes {
-        release {
-            minifyEnabled true
-            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
-            // proguard changes to make minified crash reports more readable
-            proguardFile file('debug-proguard-rules.pro')
-        }
-        debug {
-            minifyEnabled false
-        }
+    compileOptions {
+        sourceCompatibility rootProject.ext.appJavaCompatibility
+        targetCompatibility rootProject.ext.appJavaCompatibility
     }
 
+    sourceSets {
+        main {
+            manifest.srcFile 'AndroidManifest.xml'
+            java.srcDirs = ['src']
+            aidl.srcDirs = ['src']
+            renderscript.srcDirs = ['src']
+            res.srcDirs = ['res']
+            assets.srcDirs = ['assets']
+            jniLibs.srcDirs = ['libs']
+        }
+    }
     packagingOptions {
         exclude 'META-INF/robovm/ios/robovm.xml'
     }
 }
 
 dependencies {
-    implementation project(':SPD-classes')
     implementation project(':core')
-    implementation project(':services:news:shatteredNews')
-    implementation project(':services:updates:githubUpdates')
-
     implementation "com.badlogicgames.gdx:gdx-backend-android:$gdxVersion"
-    implementation "com.badlogicgames.gdx:gdx-platform:$gdxVersion:natives-armeabi-v7a"
-    implementation "com.badlogicgames.gdx:gdx-platform:$gdxVersion:natives-arm64-v8a"
-    implementation "com.badlogicgames.gdx:gdx-platform:$gdxVersion:natives-x86"
-    implementation "com.badlogicgames.gdx:gdx-platform:$gdxVersion:natives-x86_64"
-
-    // AdMob - Google Ads
+    natives "com.badlogicgames.gdx:gdx-platform:$gdxVersion:arm64-v8a"
+    natives "com.badlogicgames.gdx:gdx-platform:$gdxVersion:armeabi-v7a"
+    natives "com.badlogicgames.gdx:gdx-platform:$gdxVersion:x86_64"
+    implementation "com.badlogicgames.gdx:gdx-freetype:$gdxVersion"
+    natives "com.badlogicgames.gdx:gdx-freetype-platform:$gdxVersion:arm64-v8a"
+    natives "com.badlogicgames.gdx:gdx-freetype-platform:$gdxVersion:armeabi-v7a"
+    natives "com.badlogicgames.gdx:gdx-freetype-platform:$gdxVersion:x86_64"
+    implementation "com.badlogicgames.gdx:gdx-controllers:gdx-controllers-android:$gdxVersion"
     implementation 'com.google.android.gms:play-services-ads:22.5.0'
 }
